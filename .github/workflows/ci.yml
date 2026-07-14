@@ -61,8 +61,11 @@ jobs:
 
           python -m compileall app
 
-      - name: Run tests
-
+      - name: Run tests with coverage
         run: |
-
-          pytest --cov=app --cov-report=term
+        
+          pytest \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-report=html
