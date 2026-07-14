@@ -10,6 +10,8 @@ on:
 
       - develop
 
+      - devops_feature
+
   pull_request:
 
     branches:
