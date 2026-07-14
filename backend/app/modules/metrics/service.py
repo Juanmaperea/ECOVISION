@@ -8,7 +8,10 @@ from app.schemas.metrics import MetricsCreate
 class MetricsService:
 
     @staticmethod
-    def create(db: Session, request: MetricsCreate):
+    def create(
+        db: Session,
+        request: MetricsCreate
+    ):
 
         metric = Metrics(
             latency=request.latency,
@@ -18,4 +21,7 @@ class MetricsService:
             api_cost=request.api_cost
         )
 
-        return MetricsRepository.create(db, metric)
+        return MetricsRepository.create(
+            db,
+            metric
+        )

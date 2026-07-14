@@ -10,4 +10,10 @@ class Timer:
         self.start_time = time.perf_counter()
 
     def stop(self):
+
+        if self.start_time is None:
+            raise RuntimeError(
+                "Timer no iniciado"
+            )
+
         return time.perf_counter() - self.start_time

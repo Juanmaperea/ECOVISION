@@ -1,16 +1,19 @@
-from sqlalchemy import Column, Integer, Float, DateTime
-from sqlalchemy.sql import func
-
-from app.models.detection_history import Base
+from pydantic import BaseModel
+from typing import Optional
 
 
-class Metrics(Base):
-    __tablename__ = "metrics"
+class MetricsCreate(BaseModel):
 
-    id = Column(Integer, primary_key=True, index=True)
-    latency = Column(Float)
-    cpu = Column(Float)
-    memory = Column(Float)
-    gpu = Column(Float, nullable=True)
-    api_cost = Column(Float)
-    created_at = Column(DateTime, server_default=func.now())
+    latency: float
+    cpu: float
+    memory: float
+    gpu: Optional[float] = None
+    api_cost: float
+
+
+class MetricsResponse(MetricsCreate):
+
+    id: int
+
+    class Config:
+        from_attributes = True
