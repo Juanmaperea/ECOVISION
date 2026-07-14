@@ -10,7 +10,7 @@ on:
 
       - develop
 
-      - devops_feature
+      - feature/devops_feature
 
   pull_request:
 
@@ -63,7 +63,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-        
+
           pytest \
             --cov=app \
             --cov-report=term-missing \
