@@ -2,18 +2,30 @@ import logging
 
 from sqlalchemy.orm import Session
 
+from app.modules.metrics.collector import MetricsCollector
 from app.modules.metrics.service import MetricsService
-from app.modules.metrics.system import SystemMetrics
+
 from app.schemas.metrics import MetricsCreate
-from app.modules.metrics.timer import Timer
 
-from app.modules.visual_processing.service import VisualProcessingService
-from app.modules.recommendation.service import RecommendationService
-from app.modules.history.service import HistoryService
+from app.modules.visual_processing.service import (
+    VisualProcessingService
+)
 
-from app.schemas.recommendation import RecommendationRequest
-from app.schemas.history import HistoryCreate
+from app.modules.recommendation.service import (
+    RecommendationService
+)
 
+from app.modules.history.service import (
+    HistoryService
+)
+
+from app.schemas.recommendation import (
+    RecommendationRequest
+)
+
+from app.schemas.history import (
+    HistoryCreate
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +38,8 @@ class AnalysisService:
         image_bytes: bytes
     ):
 
-        timer = Timer()
-        timer.start()
-
-        cpu_before = SystemMetrics.cpu()
-        memory_before = SystemMetrics.memory()
+        collector = MetricsCollector()
+        collector.start()
 
         logger.info(
             "Nueva imagen recibida."
@@ -62,28 +71,30 @@ class AnalysisService:
             )
         )
 
-        latency = timer.stop()
-
-        cpu = SystemMetrics.cpu()
-
-        memory = (
-            SystemMetrics.memory()
-            - memory_before
-        )
+        metrics = collector.finish()
 
         MetricsService.create(
             db,
             MetricsCreate(
-                latency=latency,
-                cpu=cpu,
-                memory=memory,
-                gpu=None,
+                latency=metrics["latency"],
+                cpu=metrics["cpu"],
+                memory=metrics["memory"],
+                gpu=metrics["gpu"],
+                # Calcular el costo real de la API
                 api_cost=0.0
             )
         )
 
         logger.info(
-            f"Latencia: {latency:.3f}s"
+            f"Latencia: {metrics['latency']:.3f}s"
+        )
+
+        logger.info(
+            f"CPU: {metrics['cpu']:.2f}%"
+        )
+
+        logger.info(
+            f"Memoria: {metrics['memory']:.2f} MB"
         )
 
         logger.info(
