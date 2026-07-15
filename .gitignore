@@ -1,0 +1,45 @@
+# Python
+
+__pycache__/
+
+*.pyc
+
+.pytest_cache/
+
+.coverage
+
+# Virtual Env
+
+venv/
+
+.venv/
+
+# VS Code
+
+.vscode/
+
+# PyCharm
+
+.idea/
+
+# Logs
+
+*.log
+
+# Env
+
+.env
+
+# YOLO
+
+*.pt
+
+# Docker
+
+postgres_data/
+
+# OS
+
+.DS_Store
+
+Thumbs.db

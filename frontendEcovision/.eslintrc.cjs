@@ -13,6 +13,9 @@ module.exports = {
   plugins: ['react-refresh'],
   rules: {
     'react/jsx-no-target-blank': 'off',
+    // El proyecto no usa PropTypes (se prioriza JSDoc/convención de nombres);
+    // si en el futuro se migra a TypeScript, esta regla puede reactivarse.
+    'react/prop-types': 'off',
     'react-refresh/only-export-components': [
       'warn',
       { allowConstantExport: true },
