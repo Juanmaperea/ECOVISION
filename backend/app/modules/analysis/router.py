@@ -15,6 +15,8 @@ from app.schemas.analysis import (
     AnalysisResponse
 )
 
+from app.utils.image_validator import ImageValidator
+
 router = APIRouter(
 
     prefix="/analysis",
@@ -41,6 +43,18 @@ async def analyze(
 ):
 
     image_bytes = await image.read()
+
+    # Antes, este router no validaba el archivo recibido (a diferencia de
+    # visual_processing/router.py, que sí lo hace). Se agrega aquí por
+    # consistencia: rechaza tipos de imagen no soportados y archivos que
+    # superen el tamaño máximo permitido.
+    ImageValidator.validate(
+
+        image.content_type,
+
+        len(image_bytes)
+
+    )
 
     return AnalysisService.analyze(
 

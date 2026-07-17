@@ -55,18 +55,33 @@ arma el `baseURL` como `${VITE_API_URL}/api/v1`). Endpoints consumidos por este 
 
 - `GET /api/v1/health` → `{ status, application, version }`
 - `POST /api/v1/visual-processing/detect` (multipart, campo `image`) → `{ detected_object, confidence }`
-- `POST /api/v1/recommendation` (`{ detected_object, confidence }`) → `{ detected_object, confidence, container, explanation, recommendation }`
-- `POST /api/v1/history` (`{ detected_object, confidence, recommendation, explanation }`) → registro creado (`id`, `created_at`, …)
+- `POST /api/v1/analysis` (multipart, campo `image`) → `{ detected_object, confidence, container, explanation, recommendation }`
 - `GET /api/v1/history` → lista completa, más reciente primero
 - `GET /api/v1/history/{id}` → un registro puntual
+- `POST /api/v1/recommendation` y `POST /api/v1/history` existen y tienen cliente listo en `src/api/`, pero
+  `useDetectionLoop` no los llama directamente (ver más abajo); quedan disponibles para otros flujos.
 
-El backend también expone `POST /api/v1/analysis`, que hace detección + recomendación + guardado en una sola llamada
-(`app/modules/analysis/service.py`). **Este frontend NO lo usa**: ese endpoint no aplica ningún umbral de confianza
-antes de consultar a Gemini y guardar en base de datos (incluso una detección "Unknown" se persistiría). En su lugar,
-`src/hooks/useDetectionLoop.js` orquesta los tres pasos por separado (`detect` → `recommendation` → `history`) y solo
-avanza al segundo y tercer paso cuando la confianza supera `CONFIDENCE_THRESHOLD` (0.4), cumpliendo con lo que piden
-HU-06 ("solo se envían al módulo de razonamiento las detecciones válidas") y HU-10 ("solo se almacenan clasificaciones
-válidas").
+`POST /api/v1/analysis` (`app/modules/analysis/service.py`) hace detección YOLOv8 + filtro de confianza/clase +
+recomendación Gemini + guardado en `/history`, todo en una sola llamada del lado del backend, y es el único
+endpoint que usa Cámara IA para el análisis en vivo. `src/hooks/useDetectionLoop.js` llama `POST /analysis`
+directamente en cada fotograma capturado (cada `ANALYSIS_INTERVAL_MS`, ver `src/pages/CameraAI.jsx`) — ya no hace
+ningún pre-chequeo contra `/visual-processing/detect`.
+
+El filtro de confianza (`CONFIDENCE_THRESHOLD = 0.60`) y de clase reconocida (`RECOGNIZED_WASTE_CLASSES`, para
+excluir clases de COCO que no son residuos, como `person`, `chair`, `laptop`, `tv`) ahora vive del lado del backend,
+en `app/modules/analysis/service.py` (ver `outputs/backend-analysis-changes/` si necesitan aplicarlo). El backend
+expone el resultado de ese filtro en el campo nuevo **`is_valid_detection`** de `AnalysisResponse`: cuando es
+`false`, `container`/`explanation`/`recommendation` vienen en `null` y no se llamó a Gemini ni se guardó nada en el
+historial. `useDetectionLoop.js` interpreta ese campo para decidir si mostrar el panel de recomendación o un aviso
+informativo ("no se detectaron residuos", "confianza insuficiente", "objeto no reconocido como residuo") — el
+mensaje se calcula en el frontend con la misma lógica de umbral/taxonomía solo para elegir el texto correcto, pero
+la decisión real de llamar o no a Gemini ya la tomó el backend.
+
+Esto cumple con la intención de HU-06 ("solo se envían al módulo de razonamiento las detecciones válidas") y HU-10
+("solo se almacenan clasificaciones válidas") de forma más robusta que el pre-chequeo anterior, porque cualquier
+cliente que llame a `/analysis` (no solo este frontend) queda protegido por el mismo filtro. `AnalysisResponse` no
+incluye `id` ni `created_at` del registro creado, así que después de un análisis válido el frontend llama
+`refresh()` sobre `HistoryContext` para traer el registro real (con su id) desde `GET /history`.
 
 ### Brechas conocidas del backend (no se tocan desde este repo)
 
@@ -78,8 +93,8 @@ válidas").
   acción como "pendiente en backend" en vez de simular un borrado que solo ocurriría en el navegador.
 - **`container` no se persiste**: `schemas/history.py` (`HistoryCreate`/`HistoryResponse`) solo guarda
   `detected_object`, `confidence`, `recommendation` y `explanation`. El contenedor recomendado sí se conoce en el
-  momento de una detección en vivo (viene de `/recommendation`), pero se pierde al recargar el historial desde
-  `GET /history`. La pantalla de detalle lo indica explícitamente en vez de mostrar un dato inventado.
+  momento de una detección en vivo (viene de la respuesta de `/analysis`), pero se pierde al recargar el historial
+  desde `GET /history`. La pantalla de detalle lo indica explícitamente en vez de mostrar un dato inventado.
 - **Sin métricas expuestas**: `app/modules/metrics` solo tiene un `Timer` interno; no hay router registrado en
   `main.py`. `src/api/health.js` deja lista (y documentada) la llamada a un futuro `GET /health/detailed` para que la
   pantalla "Estado del sistema" muestre YOLOv8/Gemini/BD sin inventar datos mientras tanto.

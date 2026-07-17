@@ -13,7 +13,7 @@ const ANALYSIS_INTERVAL_MS = 2000
 
 export default function CameraAI() {
   const camera = useCameraCapture()
-  const { records, refresh, rememberLiveExtras } = useHistory()
+  const { records, refresh } = useHistory()
   const [current, setCurrent] = useState(null)
   const [banner, setBanner] = useState(null)
 
@@ -25,30 +25,30 @@ export default function CameraAI() {
       }
 
       if (result.type === 'inconclusive') {
-        setBanner({
-          tone: 'info',
-          message:
-            result.detectedObject && result.detectedObject.toLowerCase() !== 'unknown'
-              ? 'La identificación no es concluyente (confianza insuficiente).'
-              : 'No se detectaron residuos en este fotograma.',
-        })
+        const messages = {
+          unknown: 'No se detectaron residuos en este fotograma.',
+          low_confidence: 'La identificación no es concluyente (confianza insuficiente).',
+          not_waste: `Se detectó "${result.detectedObject}", que no corresponde a un residuo reconocido por el sistema.`,
+        }
+        setBanner({ tone: 'info', message: messages[result.reason] ?? 'No se detectaron residuos en este fotograma.' })
         return
       }
 
       setBanner(null)
       const wasteInfo = getWasteInfo(result.detectedObject)
 
-      // El registro "oficial" (id, created_at) solo existe si POST /history
-      // tuvo éxito. Mientras tanto se muestra igual el resultado en el panel
-      // en vivo, con las salvedades correspondientes (HU-18).
-      const historyRecord = result.historyRecord
-      if (historyRecord) {
-        rememberLiveExtras(historyRecord.id, { container: result.recommendation?.container ?? null, inferenceMs: result.elapsedMs })
+      // POST /analysis ya guardó el registro en el historial del lado del
+      // backend (ver app/modules/analysis/service.py), pero su respuesta
+      // (AnalysisResponse) no incluye "id" ni "created_at" del registro
+      // creado. Por eso "current" no tiene id propio: para ver el detalle
+      // completo con su id real hay que ir al historial una vez se
+      // refresque la lista (refresh() más abajo).
+      if (result.recommendation) {
         refresh()
       }
 
       setCurrent({
-        id: historyRecord?.id ?? null,
+        id: null,
         detectedObject: result.detectedObject,
         label: wasteInfo.label,
         category: wasteInfo.category,
@@ -60,11 +60,10 @@ export default function CameraAI() {
         explanation: result.recommendation?.explanation ?? null,
         recommendation: result.recommendation?.recommendation ?? null,
         recommendationError: result.recommendationError,
-        historyError: result.historyError,
-        createdAt: historyRecord?.created_at ?? new Date().toISOString(),
+        createdAt: new Date().toISOString(),
       })
     },
-    [refresh, rememberLiveExtras],
+    [refresh],
   )
 
   useDetectionLoop({
@@ -152,12 +151,6 @@ export default function CameraAI() {
               }`}
             >
               <CircleAlert size={16} /> {banner.message}
-            </div>
-          )}
-
-          {current?.historyError && (
-            <div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
-              <CircleAlert size={16} /> La detección se muestra, pero no se pudo guardar en el historial: {current.historyError.message}
             </div>
           )}
 

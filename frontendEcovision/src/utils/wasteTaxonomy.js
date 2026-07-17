@@ -55,6 +55,19 @@ const TAXONOMY = {
   cake: { label: 'Residuo orgánico', category: CATEGORY.ORGANICO, material: 'Materia orgánica', recyclability: 'Medio' },
 }
 
+// El backend carga yolov8n.pt, el modelo genérico preentrenado con las 80
+// clases de COCO (incluye "person", "chair", "laptop", "tv", etc.), y
+// app/modules/visual_processing/detector.py no filtra por clase: devuelve
+// la primera detección tal cual la entregue YOLO. Esto significa que si el
+// usuario aparece frente a la cámara, "person" puede ganarle a cualquier
+// residuo real en confianza. Mientras el backend no filtre las clases
+// relevantes en el propio detector, el frontend evita tratar estas clases
+// como una detección de residuo válida (ver isRecognizedWaste más abajo).
+export function isRecognizedWaste(rawLabel) {
+  if (!rawLabel) return false
+  return rawLabel.toLowerCase().trim() in TAXONOMY
+}
+
 export function getWasteInfo(rawLabel) {
   if (!rawLabel || rawLabel.toLowerCase() === 'unknown') {
     return {

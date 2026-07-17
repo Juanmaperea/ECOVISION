@@ -49,19 +49,17 @@ export function useMetrics(days = 14) {
     })
     const dailySeries = dayBuckets.map((key) => ({ day: shortDay(key), value: countsByDay[key] }))
 
-    // El backend (GET /history) no persiste el tiempo de inferencia todavía
-    // (ver schemas/history.py), así que este promedio solo cuenta con datos
-    // de detecciones hechas en la sesión actual (Cámara IA los adjunta en
-    // memoria vía rememberLiveExtras). Con el historial recién cargado será
-    // null hasta que se realice al menos una detección en vivo.
+    // El backend (GET /history) no persiste el tiempo de inferencia
+    // (ver schemas/history.py), así que este promedio siempre será null:
+    // se deja calculado por si en algún momento el esquema lo incluye.
     const inferenceTimes = records.map((r) => r.inferenceMs).filter((v) => typeof v === 'number')
     const avgInferenceMs = inferenceTimes.length
       ? inferenceTimes.reduce((a, b) => a + b, 0) / inferenceTimes.length
       : null
 
     // Todo registro persistido en /history pasó por una recomendación
-    // exitosa (useDetectionLoop solo llama a POST /history después de
-    // recibir una respuesta válida de /recommendation), por eso equivale al
+    // exitosa (useDetectionLoop solo continúa hacia /analysis después de
+    // que el pre-chequeo de confianza es válido), por eso equivale al
     // total de registros con texto de recomendación.
     const recommendationsGenerated = records.filter((r) => Boolean(r.recommendation)).length
 

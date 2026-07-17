@@ -4,13 +4,11 @@ import { getWasteInfo } from './wasteTaxonomy'
 // HistoryResponse = { id, detected_object, confidence, recommendation,
 // explanation, created_at }) hacia la forma que usa la interfaz.
 //
-// `extra` permite enriquecer el registro con datos que SOLO existen en el
-// momento de una detección en vivo (Cámara IA) y que el backend no
-// persiste todavía en el historial, como el contenedor recomendado
-// (RecommendationResponse.container) o el tiempo de respuesta medido en
-// el cliente. Al leer el historial desde GET /history esos campos no
-// estarán disponibles y la UI debe mostrarlo honestamente en vez de
-// inventar un valor.
+// `extra` permite enriquecer el registro con datos que el backend no
+// persiste en el historial (ver schemas/history.py), como el contenedor
+// recomendado o el tiempo de respuesta. GET /history nunca los trae, así
+// que por defecto quedan en null y la UI lo muestra honestamente en vez
+// de inventar un valor.
 export function mapHistoryRecord(apiRecord, extra = {}) {
   const wasteInfo = getWasteInfo(apiRecord.detected_object)
 

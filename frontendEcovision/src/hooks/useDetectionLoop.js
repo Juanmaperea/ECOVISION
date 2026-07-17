@@ -1,31 +1,30 @@
 import { useEffect, useRef } from 'react'
-import { detectFrame } from '../api/detection'
-import { getRecommendation } from '../api/recommendation'
-import { createHistory } from '../api/history'
+import { analyzeFrame } from '../api/analysis'
+import { isRecognizedWaste } from '../utils/wasteTaxonomy'
 
-// Umbral mínimo de confianza para considerar una detección "concluyente" a
-// nivel de interfaz (HU-06: validar confiabilidad). El backend no aplica
-// este filtro por sí mismo antes de generar una recomendación, así que el
-// cliente actúa como salvaguarda: solo se consulta a Gemini y solo se
-// persiste en el historial cuando la detección supera este umbral,
-// cumpliendo HU-06 ("solo se envían al módulo de razonamiento las
-// detecciones válidas") y HU-10 ("solo se almacenan clasificaciones
-// válidas").
-export const CONFIDENCE_THRESHOLD = 0.4
+// Umbral de confianza usado SOLO para elegir qué mensaje mostrar en la
+// interfaz cuando el backend descarta una detección (ver más abajo). El
+// filtro real que decide si se llama a Gemini y se guarda en el historial
+// ahora vive en el backend (app/modules/analysis/service.py,
+// CONFIDENCE_THRESHOLD = 0.60). Este valor se mantiene igual al del
+// backend para que el mensaje sea coherente con lo que realmente pasó.
+export const CONFIDENCE_THRESHOLD = 0.6
 
-// Orquesta el ciclo completo:
+// Orquesta el ciclo de análisis llamando directamente al endpoint
+// combinado del backend en cada fotograma:
 //   1. capturar fotograma
-//   2. POST /visual-processing/detect        (YOLOv8)
-//   3. si es concluyente -> POST /recommendation (Gemini)
-//   4. si hubo recomendación -> POST /history     (persistencia)
+//   2. POST /analysis (app/modules/analysis/service.py): YOLOv8 + filtro de
+//      confianza/clase + Gemini + guardado en /history, todo del lado del
+//      backend en una sola llamada.
 //
-// Se usa la orquestación granular en vez del endpoint combinado
-// POST /analysis porque este último no aplica ningún umbral de confianza
-// antes de llamar a Gemini y guardar en base de datos (ver
-// backend/app/modules/analysis/service.py, rama develop): siempre
-// persiste, incluso para detecciones "Unknown". Haciendo los tres pasos
-// desde el frontend, el cliente controla exactamente cuándo vale la pena
-// gastar una llamada a Gemini y una escritura en la base de datos.
+// Antes este hook hacía un pre-chequeo contra /visual-processing/detect
+// para decidir si valía la pena llamar a /analysis, porque el backend no
+// filtraba nada. Ahora ese filtro (confianza mínima + clase de residuo
+// reconocida) se implementó directamente en app/modules/analysis/service.py,
+// que expone el resultado en el campo `is_valid_detection` de la respuesta.
+// Por eso el pre-chequeo ya no es necesario: se llama /analysis una sola
+// vez por fotograma y se interpreta `is_valid_detection` para decidir si
+// hubo una recomendación real o no.
 //
 // Incluye un guard de "in-flight" para no acumular peticiones si el
 // backend responde más lento que el intervalo configurado (HU-02 / HU-18).
@@ -43,53 +42,31 @@ export function useDetectionLoop({ active, intervalMs, captureFrameBlob, onResul
         const blob = await captureFrameBlob()
         if (!blob) return
 
-        const detection = await detectFrame(blob)
+        const analysis = await analyzeFrame(blob)
 
-        if (!detection.ok) {
-          onResult({ type: 'error', stage: 'detect', error: detection.error })
+        if (!analysis.ok) {
+          onResult({ type: 'error', stage: 'analysis', error: analysis.error })
           return
         }
 
-        const { detected_object: detectedObject, confidence } = detection.data
-        const isConclusive = detectedObject && detectedObject.toLowerCase() !== 'unknown' && confidence >= CONFIDENCE_THRESHOLD
+        const { detected_object: detectedObject, confidence, is_valid_detection: isValidDetection } = analysis.data
 
-        if (!isConclusive) {
-          onResult({ type: 'inconclusive', detectedObject, confidence, elapsedMs: detection.elapsedMs })
+        if (!isValidDetection) {
+          const isUnknown = !detectedObject || detectedObject.toLowerCase() === 'unknown'
+          const isLowConfidence = !isUnknown && confidence < CONFIDENCE_THRESHOLD
+          const isNotWaste = !isUnknown && !isLowConfidence && !isRecognizedWaste(detectedObject)
+          const reason = isUnknown ? 'unknown' : isLowConfidence ? 'low_confidence' : isNotWaste ? 'not_waste' : 'low_confidence'
+          onResult({ type: 'inconclusive', reason, detectedObject, confidence, elapsedMs: analysis.elapsedMs })
           return
         }
-
-        const recommendation = await getRecommendation({ detectedObject, confidence })
-
-        if (!recommendation.ok) {
-          onResult({
-            type: 'detection',
-            detectedObject,
-            confidence,
-            elapsedMs: detection.elapsedMs,
-            recommendation: null,
-            recommendationError: recommendation.error,
-            historyRecord: null,
-            historyError: null,
-          })
-          return
-        }
-
-        const historySave = await createHistory({
-          detectedObject,
-          confidence,
-          recommendation: recommendation.data.recommendation,
-          explanation: recommendation.data.explanation,
-        })
 
         onResult({
           type: 'detection',
           detectedObject,
           confidence,
-          elapsedMs: detection.elapsedMs,
-          recommendation: recommendation.data,
+          elapsedMs: analysis.elapsedMs,
+          recommendation: analysis.data,
           recommendationError: null,
-          historyRecord: historySave.ok ? historySave.data : null,
-          historyError: historySave.ok ? null : historySave.error,
         })
       } catch {
         onResult({ type: 'error', stage: 'unknown', error: { message: 'Ocurrió un error inesperado durante el análisis.' } })
