@@ -7,6 +7,10 @@ from app.modules.visual_processing.service import (
 from app.modules.recommendation.service import (
     RecommendationService
 )
+from app.modules.metrics.collector import MetricsCollector
+from app.modules.metrics.service import MetricsService
+
+from app.schemas.metrics import MetricsCreate
 
 from app.modules.history.service import (
     HistoryService
@@ -76,7 +80,8 @@ class AnalysisService:
         db: Session,
         image_bytes: bytes
     ):
-
+        collector = MetricsCollector()
+        collector.start()
         timer = Timer()
 
         timer.begin()
@@ -154,6 +159,8 @@ class AnalysisService:
             )
 
         )
+        
+        metrics = collector.finish()
 
         HistoryService.create(
 
