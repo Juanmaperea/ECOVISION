@@ -142,7 +142,7 @@ class AnalysisService:
 
             logger.info(
 
-                "Análisis finalizado (detección no válida, sin llamada a Gemini ni guardado en historial)."
+                "Análisis finalizado (detección no válida, sin llamada a Gemini ni guardado en historial).")
 
 
         if detection["confidence"] < 0.60:
