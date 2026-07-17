@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -7,8 +9,10 @@ class AnalysisResponse(BaseModel):
 
     confidence: float
 
-    container: str
+    is_valid_detection: bool
 
-    explanation: str
+    container: Optional[str] = None
 
-    recommendation: str
+    explanation: Optional[str] = None
+
+    recommendation: Optional[str] = None

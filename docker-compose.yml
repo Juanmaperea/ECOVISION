@@ -52,6 +52,28 @@ services:
 
       - ./backend:/app
 
+  frontend:
+
+    build:
+
+      context: ./frontendEcovision
+
+      args:
+
+        VITE_API_URL: http://localhost:8000
+
+    container_name: ecovision_frontend
+
+    restart: always
+
+    depends_on:
+
+      - backend
+
+    ports:
+
+      - "8080:80"
+
 volumes:
 
   postgres_data:
