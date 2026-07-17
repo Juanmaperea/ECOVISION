@@ -1,4 +1,11 @@
+import logging
+
 from sqlalchemy.orm import Session
+
+from app.modules.metrics.collector import MetricsCollector
+from app.modules.metrics.service import MetricsService
+
+from app.schemas.metrics import MetricsCreate
 
 from app.modules.visual_processing.service import (
     VisualProcessingService
@@ -24,13 +31,16 @@ from app.schemas.history import (
     HistoryCreate
 )
 
+
 from app.schemas.analysis import (
     AnalysisResponse
 )
 
 from app.modules.metrics.timer import Timer
 
-import logging
+logger = logging.getLogger(__name__)
+
+
 
 # Confianza mínima de YOLO para considerar la detección válida y disparar
 # el resto del flujo (Gemini + guardado en historial). Antes este umbral
@@ -80,23 +90,20 @@ class AnalysisService:
         db: Session,
         image_bytes: bytes
     ):
+
         collector = MetricsCollector()
         collector.start()
         timer = Timer()
 
-        timer.begin()
-
-        logger = logging.getLogger(__name__)
 
         logger.info(
-
             "Nueva imagen recibida."
-
         )
 
         detection = VisualProcessingService.detect(
             image_bytes
         )
+
 
         detected_object = detection["detected_object"]
 
@@ -137,6 +144,11 @@ class AnalysisService:
 
                 "Análisis finalizado (detección no válida, sin llamada a Gemini ni guardado en historial)."
 
+
+        if detection["confidence"] < 0.60:
+            logger.warning(
+                "La confianza de YOLO es baja."
+
             )
 
             # Ni Gemini ni el historial se tocan cuando la detección no es
@@ -149,49 +161,54 @@ class AnalysisService:
             )
 
         recommendation = RecommendationService.generate(
-
             RecommendationRequest(
 
                 detected_object=detected_object,
 
                 confidence=confidence
 
-            )
 
+            )
         )
         
+        HistoryService.create(
+            db,
+            HistoryCreate(
+                detected_object=recommendation.detected_object,
+                confidence=recommendation.confidence,
+                recommendation=recommendation.recommendation,
+                explanation=recommendation.explanation
+            )
+        )
+
         metrics = collector.finish()
 
-        HistoryService.create(
-
+        MetricsService.create(
             db,
-
-            HistoryCreate(
-
-                detected_object=recommendation.detected_object,
-
-                confidence=recommendation.confidence,
-
-                recommendation=recommendation.recommendation,
-
-                explanation=recommendation.explanation
-
+            MetricsCreate(
+                latency=metrics["latency"],
+                cpu=metrics["cpu"],
+                memory=metrics["memory"],
+                gpu=metrics["gpu"],
+                # Calcular el costo real de la API
+                api_cost=0.0
             )
-
         )
-
         elapsed = timer.end()
-
         logger.info(
-
-            f"Tiempo total: {elapsed} segundos"
-
+            f"Latencia: {metrics['latency']:.3f}s"
         )
 
         logger.info(
+            f"CPU: {metrics['cpu']:.2f}%"
+        )
 
+        logger.info(
+            f"Memoria: {metrics['memory']:.2f} MB"
+        )
+
+        logger.info(
             "Análisis finalizado."
-
         )
 
         return AnalysisResponse(
