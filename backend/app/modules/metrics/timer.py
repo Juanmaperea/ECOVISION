@@ -4,19 +4,16 @@ import time
 class Timer:
 
     def __init__(self):
+        self.start_time = None
 
-        self.start = 0
+    def start(self):
+        self.start_time = time.perf_counter()
 
-    def begin(self):
+    def stop(self):
 
-        self.start = time.perf_counter()
+        if self.start_time is None:
+            raise RuntimeError(
+                "Timer no iniciado"
+            )
 
-    def end(self):
-
-        return round(
-
-            time.perf_counter() - self.start,
-
-            4
-
-        )
+        return time.perf_counter() - self.start_time

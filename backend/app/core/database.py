@@ -28,5 +28,6 @@ SessionLocal = sessionmaker(
 )
 
 from app.models.detection_history import Base
+from app.models.metrics import Metrics
 
 Base.metadata.create_all(bind=engine)
