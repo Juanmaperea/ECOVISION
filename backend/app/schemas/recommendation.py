@@ -12,3 +12,4 @@ class RecommendationResponse(BaseModel):
     container: str
     explanation: str
     recommendation: str
+    container: str

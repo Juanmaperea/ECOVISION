@@ -23,7 +23,9 @@ class HistoryService:
 
             recommendation=request.recommendation,
 
-            explanation=request.explanation
+            explanation=request.explanation,
+
+            container=request.container
 
         )
 
