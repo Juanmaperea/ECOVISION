@@ -1,3 +1,7 @@
+from unittest.mock import patch, MagicMock
+
+from app.modules.analysis.service import AnalysisService
+
 @patch(
     "app.modules.visual_processing.service.VisualProcessingService.detect"
 )
@@ -7,7 +11,7 @@
 @patch(
     "app.modules.history.service.HistoryService.create"
 )
-def test_analysis_unrecognized_class_generates_recommendation(
+def test_analysis_unrecognized_class_is_not_valid(
 
     mock_history,
 
@@ -17,32 +21,31 @@ def test_analysis_unrecognized_class_generates_recommendation(
 
 ):
 
+    # Confianza alta pero la clase ("person") no está en
+    # RECOGNIZED_WASTE_CLASSES: no debe llamarse a Gemini ni guardarse en
+    # el historial, aunque YOLO esté muy seguro de la detección.
     mock_detection.return_value = {
+
         "detected_object": "person",
+
         "confidence": 0.95
+
     }
-
-    recommendation = MagicMock()
-    recommendation.detected_object = "person"
-    recommendation.confidence = 0.95
-    recommendation.container = "No aplica"
-    recommendation.explanation = "No es un residuo reconocido"
-    recommendation.recommendation = "Sin recomendación"
-
-    mock_recommendation.return_value = recommendation
 
     db = MagicMock()
 
     response = AnalysisService.analyze(
+
         db,
+
         b"image"
+
     )
 
-    assert response.is_valid_detection is True
-    assert response.detected_object == "person"
-    assert response.container == "No aplica"
-    assert response.explanation == "No es un residuo reconocido"
-    assert response.recommendation == "Sin recomendación"
+    assert response.is_valid_detection is False
 
-    mock_recommendation.assert_called_once()
-    mock_history.assert_called_once()
+    assert response.container is None
+
+    mock_recommendation.assert_not_called()
+
+    mock_history.assert_not_called()
