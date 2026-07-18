@@ -13,6 +13,8 @@ class HistoryCreate(BaseModel):
 
     explanation: str
 
+    container: str 
+
 
 class HistoryResponse(HistoryCreate):
 

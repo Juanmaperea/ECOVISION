@@ -94,6 +94,7 @@ class AnalysisService:
         collector = MetricsCollector()
         collector.start()
         timer = Timer()
+        timer.start()
 
 
         logger.info(
@@ -132,7 +133,7 @@ class AnalysisService:
                     CONFIDENCE_THRESHOLD
                 )
 
-            elapsed = timer.end()
+            elapsed = timer.stop()
 
             logger.info(
 
@@ -177,7 +178,8 @@ class AnalysisService:
                 detected_object=recommendation.detected_object,
                 confidence=recommendation.confidence,
                 recommendation=recommendation.recommendation,
-                explanation=recommendation.explanation
+                explanation=recommendation.explanation,
+                container=recommendation.container
             )
         )
 
@@ -194,7 +196,8 @@ class AnalysisService:
                 api_cost=0.0
             )
         )
-        elapsed = timer.end()
+        elapsed = timer.stop()
+
         logger.info(
             f"Latencia: {metrics['latency']:.3f}s"
         )
