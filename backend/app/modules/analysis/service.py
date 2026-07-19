@@ -14,10 +14,6 @@ from app.modules.visual_processing.service import (
 from app.modules.recommendation.service import (
     RecommendationService
 )
-from app.modules.metrics.collector import MetricsCollector
-from app.modules.metrics.service import MetricsService
-
-from app.schemas.metrics import MetricsCreate
 
 from app.modules.history.service import (
     HistoryService
@@ -104,6 +100,7 @@ class AnalysisService:
         detection = VisualProcessingService.detect(
             image_bytes
         )
+        logger.info("DETECTION: %s", detection)
 
 
         detected_object = detection["detected_object"]
@@ -136,30 +133,19 @@ class AnalysisService:
             elapsed = timer.stop()
 
             logger.info(
-
                 f"Tiempo total: {elapsed} segundos"
-
             )
 
             logger.info(
-
-                "Análisis finalizado (detección no válida, sin llamada a Gemini ni guardado en historial).")
-
-
-        if detection["confidence"] < 0.60:
-            logger.warning(
-                "La confianza de YOLO es baja."
-
+                "Análisis finalizado (detección no válida, sin llamada a Gemini ni guardado en historial)."
             )
 
-            # Ni Gemini ni el historial se tocan cuando la detección no es
-            # válida: se evita gastar la llamada al LLM y se evita
-            # contaminar el historial con detecciones que no son residuos.
             return AnalysisResponse(
                 detected_object=detected_object,
                 confidence=confidence,
                 is_valid_detection=False
             )
+
 
         recommendation = RecommendationService.generate(
             RecommendationRequest(
