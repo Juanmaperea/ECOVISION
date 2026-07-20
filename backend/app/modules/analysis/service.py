@@ -165,10 +165,8 @@ class AnalysisService:
 
         print(">>> Métricas guardadas")
 
-        elapsed = timer.stop()
-        logger.info(
-            f"Tiempo total: {elapsed} segundos"
-        )
+        
+        
 
         logger.info(
             f"Latencia: {metrics['latency']:.3f}s"
