@@ -155,6 +155,8 @@ class AnalysisService:
 
         metrics = collector.finish(usage_metadata)
 
+        print(">>> Guardando métricas:", metrics)
+
         MetricsService.create(
             db,
             MetricsCreate(
@@ -165,6 +167,8 @@ class AnalysisService:
                 api_cost=metrics["api_cost"]
             )
         )
+
+        print(">>> Métricas guardadas")
 
         elapsed = timer.stop()
 
