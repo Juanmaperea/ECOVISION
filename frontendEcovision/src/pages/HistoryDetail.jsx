@@ -76,15 +76,10 @@ export default function HistoryDetail() {
             />
             <Field label="Nivel de reciclabilidad" value={record.recyclability} />
             <Field label="Fecha y hora" value={formatDateTime(record.createdAt)} />
-            <Field label="Tiempo de respuesta del modelo" value={formatMs(record.inferenceMs)} />
             <Field label="Modelo utilizado" value="YOLOv8" />
           </dl>
 
-          <div className="mt-4 flex items-start gap-2 rounded-lg bg-slate-50 p-3 text-xs text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
-            <ShieldCheck size={15} className="mt-0.5 shrink-0" />
-            Por privacidad, EcoVision no almacena las imágenes capturadas por la cámara: solo se conserva la información
-            estructurada de cada detección.
-          </div>
+          
         </SectionCard>
 
         <SectionCard title="Recomendación generada por IA (Gemini)">

@@ -32,7 +32,6 @@ from app.schemas.analysis import (
     AnalysisResponse
 )
 
-from app.modules.metrics.timer import Timer
 
 logger = logging.getLogger(__name__)
 
@@ -89,8 +88,7 @@ class AnalysisService:
 
         collector = MetricsCollector()
         collector.start()
-        timer = Timer()
-        timer.start()
+        
 
 
         logger.info(
@@ -100,7 +98,6 @@ class AnalysisService:
         detection = VisualProcessingService.detect(
             image_bytes
         )
-        logger.info("DETECTION: %s", detection)
 
 
         detected_object = detection["detected_object"]
@@ -130,15 +127,9 @@ class AnalysisService:
                     CONFIDENCE_THRESHOLD
                 )
 
-            elapsed = timer.stop()
+            
 
-            logger.info(
-                f"Tiempo total: {elapsed} segundos"
-            )
-
-            logger.info(
-                "Análisis finalizado (detección no válida, sin llamada a Gemini ni guardado en historial)."
-            )
+            
 
             return AnalysisResponse(
                 detected_object=detected_object,
@@ -170,6 +161,13 @@ class AnalysisService:
         )
 
         metrics = collector.finish()
+        logger.info(
+                f"Tiempo total: {metrics['latency']:.3f} segundos"
+)
+
+        logger.info(
+                "Análisis finalizado (detección no válida, sin llamada a Gemini ni guardado en historial)."
+            )
 
         MetricsService.create(
             db,
@@ -178,11 +176,9 @@ class AnalysisService:
                 cpu=metrics["cpu"],
                 memory=metrics["memory"],
                 gpu=metrics["gpu"],
-                # Calcular el costo real de la API
-                api_cost=0.0
+                api_cost=recommendation.api_cost,
             )
         )
-        elapsed = timer.stop()
 
         logger.info(
             f"Latencia: {metrics['latency']:.3f}s"

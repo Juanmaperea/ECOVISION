@@ -12,4 +12,7 @@ class RecommendationResponse(BaseModel):
     container: str
     explanation: str
     recommendation: str
-    container: str
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    api_cost: float

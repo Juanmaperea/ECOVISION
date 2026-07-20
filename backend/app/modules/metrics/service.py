@@ -25,3 +25,13 @@ class MetricsService:
             db,
             metric
         )
+    @staticmethod
+    def get_all(db: Session):
+
+        return MetricsRepository.get_all(db)
+
+
+    @staticmethod
+    def get_latest(db: Session):
+
+        return MetricsRepository.get_latest(db)

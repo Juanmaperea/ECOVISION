@@ -27,6 +27,9 @@ from app.core.exceptions import (
     value_error_handler,
     generic_error_handler
 )
+from app.modules.metrics.router import (
+    router as metrics_router
+)
 
 configure_logging()
 
@@ -72,6 +75,10 @@ app.include_router(
 
 app.include_router(
     analysis_router,
+    prefix="/api/v1"
+)
+app.include_router(
+    metrics_router,
     prefix="/api/v1"
 )
 

@@ -18,4 +18,7 @@ class GeminiClient:
             contents=prompt
         )
 
-        return response.text
+        return {
+            "text": response.text,
+            "usage": response.usage_metadata
+        }
