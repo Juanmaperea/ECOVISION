@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 
 from app.modules.metrics.collector import MetricsCollector
 from app.modules.metrics.service import MetricsService
-
 from app.schemas.metrics import MetricsCreate
 
 from app.modules.visual_processing.service import (
@@ -136,7 +135,7 @@ class AnalysisService:
                 is_valid_detection=False
             )
 
-        recommendation = RecommendationService.generate(
+        recommendation, usage_metadata = RecommendationService.generate(
             RecommendationRequest(
                 detected_object=detected_object,
                 confidence=confidence
@@ -154,7 +153,7 @@ class AnalysisService:
             )
         )
 
-        metrics = collector.finish()
+        metrics = collector.finish(usage_metadata)
 
         MetricsService.create(
             db,
@@ -163,7 +162,7 @@ class AnalysisService:
                 cpu=metrics["cpu"],
                 memory=metrics["memory"],
                 gpu=metrics["gpu"],
-                api_cost=0.0
+                api_cost=metrics["api_cost"]
             )
         )
 

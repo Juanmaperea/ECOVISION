@@ -14,14 +14,18 @@ class RecommendationService:
     @staticmethod
     def generate(
         request: RecommendationRequest
-    ) -> RecommendationResponse:
+    ):
 
         prompt = PromptBuilder.build(
             request.detected_object,
             request.confidence
         )
 
-        answer = GeminiClient.ask(prompt)
+        response = GeminiClient.ask_with_metadata(
+            prompt
+        )
+
+        answer = response.text
 
         print("\n========== RESPUESTA GEMINI ==========")
         print(answer)
@@ -29,10 +33,12 @@ class RecommendationService:
 
         data = json.loads(answer)
 
-        return RecommendationResponse(
+        recommendation = RecommendationResponse(
             detected_object=request.detected_object,
             confidence=request.confidence,
             container=data["container"],
             explanation=data["explanation"],
             recommendation=data["recommendation"]
         )
+
+        return recommendation, response.usage_metadata
