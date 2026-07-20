@@ -16,9 +16,8 @@ print(DATABASE_URL)
 print(repr(DATABASE_URL))
 
 engine = create_engine(
-    DATABASE_URL,
-    echo=False,
-    pool_pre_ping=True
+    settings.DATABASE_URL,
+    pool_pre_ping=True,
 )
 
 SessionLocal = sessionmaker(
