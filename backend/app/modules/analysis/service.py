@@ -14,10 +14,6 @@ from app.modules.visual_processing.service import (
 from app.modules.recommendation.service import (
     RecommendationService
 )
-from app.modules.metrics.collector import MetricsCollector
-from app.modules.metrics.service import MetricsService
-
-from app.schemas.metrics import MetricsCreate
 
 from app.modules.history.service import (
     HistoryService
@@ -31,7 +27,6 @@ from app.schemas.history import (
     HistoryCreate
 )
 
-
 from app.schemas.analysis import (
     AnalysisResponse
 )
@@ -41,26 +36,11 @@ from app.modules.metrics.timer import Timer
 logger = logging.getLogger(__name__)
 
 
-
 # Confianza mínima de YOLO para considerar la detección válida y disparar
-# el resto del flujo (Gemini + guardado en historial). Antes este umbral
-# solo generaba un warning en el log, pero igual se llamaba a Gemini y se
-# guardaba en el historial sin importar qué tan baja fuera la confianza.
+# el resto del flujo (Gemini + guardado en historial).
 CONFIDENCE_THRESHOLD = 0.60
 
-# Clases de COCO (las 80 que reconoce yolov8n.pt) que corresponden al
-# alcance de EcoVision como residuos. yolov8n.pt es un modelo genérico y
-# también reconoce clases que no son residuos ("person", "chair", "laptop",
-# "tv", etc.): sin este filtro, apuntar la cámara hacia una persona
-# generaba una recomendación de Gemini y un registro de historial igual
-# que una botella real.
-#
-# Nota: esta lista está intencionalmente alineada con
-# frontendEcovision/src/utils/wasteTaxonomy.js (TAXONOMY). Si se agrega una
-# clase nueva aquí, hay que reflejarla también en el frontend para que el
-# mensaje que se le muestra al usuario sea coherente con lo que el backend
-# realmente valida. La comparación se hace en minúsculas porque así es como
-# `Detector.detect` devuelve las clases de YOLO (result.names).
+# Clases de COCO que EcoVision considera residuos válidos.
 RECOGNIZED_WASTE_CLASSES = {
     "bottle",
     "wine glass",
@@ -93,9 +73,9 @@ class AnalysisService:
 
         collector = MetricsCollector()
         collector.start()
+
         timer = Timer()
         timer.start()
-
 
         logger.info(
             "Nueva imagen recibida."
@@ -105,16 +85,20 @@ class AnalysisService:
             image_bytes
         )
 
-
         detected_object = detection["detected_object"]
-
         confidence = detection["confidence"]
 
-        is_recognized_class = detected_object.lower() in RECOGNIZED_WASTE_CLASSES
+        is_recognized_class = (
+            detected_object.lower() in RECOGNIZED_WASTE_CLASSES
+        )
 
-        has_enough_confidence = confidence >= CONFIDENCE_THRESHOLD
+        has_enough_confidence = (
+            confidence >= CONFIDENCE_THRESHOLD
+        )
 
-        is_valid_detection = is_recognized_class and has_enough_confidence
+        is_valid_detection = (
+            is_recognized_class and has_enough_confidence
+        )
 
         if not is_valid_detection:
 
@@ -136,20 +120,11 @@ class AnalysisService:
             elapsed = timer.stop()
 
             logger.info(
-
                 f"Tiempo total: {elapsed} segundos"
-
             )
 
             logger.info(
-
-                "Análisis finalizado (detección no válida, sin llamada a Gemini ni guardado en historial).")
-
-
-        if detection["confidence"] < 0.60:
-            logger.warning(
-                "La confianza de YOLO es baja."
-
+                "Análisis finalizado (detección no válida, sin llamada a Gemini ni guardado en historial)."
             )
 
             # Ni Gemini ni el historial se tocan cuando la detección no es
@@ -163,15 +138,11 @@ class AnalysisService:
 
         recommendation = RecommendationService.generate(
             RecommendationRequest(
-
                 detected_object=detected_object,
-
                 confidence=confidence
-
-
             )
         )
-        
+
         HistoryService.create(
             db,
             HistoryCreate(
@@ -192,11 +163,15 @@ class AnalysisService:
                 cpu=metrics["cpu"],
                 memory=metrics["memory"],
                 gpu=metrics["gpu"],
-                # Calcular el costo real de la API
                 api_cost=0.0
             )
         )
+
         elapsed = timer.stop()
+
+        logger.info(
+            f"Tiempo total: {elapsed} segundos"
+        )
 
         logger.info(
             f"Latencia: {metrics['latency']:.3f}s"
