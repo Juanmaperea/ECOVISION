@@ -5,9 +5,17 @@ import MaterialDonutChart from '../components/charts/MaterialDonutChart.jsx'
 import DetectionsLineChart from '../components/charts/DetectionsLineChart.jsx'
 import { useMetrics } from '../hooks/useMetrics.js'
 import { formatMs, formatPercent } from '../utils/format.js'
+import { useBackendMetrics } from '../hooks/useBackendMetrics'
+import {
+  Cpu,
+  MemoryStick,
+  DollarSign,
+  CalendarDays,
+} from 'lucide-react'
 
 export default function Statistics() {
   const metrics = useMetrics(14)
+  const backend = useBackendMetrics()
 
   return (
     <div className="flex flex-col gap-4">
@@ -25,11 +33,80 @@ export default function Statistics() {
           <CategoryBarChart data={metrics.categoryData} height={280} />
         </SectionCard>
         <SectionCard title="Indicadores generales">
-          <div className="grid grid-cols-2 gap-4">
-            <Indicator icon={Camera} label="Imágenes analizadas" value={metrics.total.toLocaleString('es-CO')} sub="Total acumulado" />
-            <Indicator icon={Clock} label="Tiempo prom. de inferencia" value={formatMs(metrics.avgInferenceMs)} sub="Por análisis" />
-            <Indicator icon={Target} label="Precisión promedio" value={formatPercent(metrics.avgConfidence)} sub="YOLOv8" />
-            <Indicator icon={Sparkles} label="Recomendaciones generadas" value={metrics.recommendationsGenerated.toLocaleString('es-CO')} sub="Total acumulado" />
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+
+            <Indicator
+              icon={Camera}
+              label="Imágenes analizadas"
+              value={metrics.total.toLocaleString('es-CO')}
+              sub="Total acumulado"
+            />
+
+            <Indicator
+              icon={Target}
+              label="Precisión promedio"
+              value={formatPercent(metrics.avgConfidence)}
+              sub="YOLOv8"
+            />
+
+            <Indicator
+              icon={Sparkles}
+              label="Recomendaciones"
+              value={metrics.recommendationsGenerated.toLocaleString('es-CO')}
+              sub="Generadas"
+            />
+
+            <Indicator
+              icon={Clock}
+              label="Latencia"
+              value={
+                backend.metrics
+                  ? `${backend.metrics.latency.toFixed(3)} s`
+                  : '--'
+              }
+              sub="Último análisis"
+            />
+
+            <Indicator
+              icon={Cpu}
+              label="CPU"
+              value={
+                backend.metrics
+                  ? `${backend.metrics.cpu.toFixed(1)} %`
+                  : '--'
+              }
+              sub="Servidor"
+            />
+
+            <Indicator
+              icon={MemoryStick}
+              label="Memoria RAM"
+              value={
+                backend.metrics
+                  ? `${backend.metrics.memory.toFixed(1)} MB`
+                  : '--'
+              }
+              sub="Servidor"
+            />
+
+            <Indicator
+              icon={DollarSign}
+              label="Costo Gemini"
+              value={
+                backend.metrics
+                  ? `$${backend.metrics.api_cost.toFixed(6)}`
+                  : '--'
+              }
+              sub="Última consulta"
+            />
+
+            <Indicator
+              icon={CalendarDays}
+              label="Detecciones hoy"
+              value={metrics.detectionsToday.toLocaleString('es-CO')}
+              sub="Hoy"
+            />
+
           </div>
         </SectionCard>
       </div>

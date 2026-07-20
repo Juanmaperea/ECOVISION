@@ -142,17 +142,7 @@ export default function CameraAI() {
             <p className="text-xs text-slate-400">Análisis automático cada {ANALYSIS_INTERVAL_MS / 1000}s mientras la cámara esté activa.</p>
           </div>
 
-          {banner && (
-            <div
-              className={`mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
-                banner.tone === 'error'
-                  ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300'
-                  : 'bg-slate-50 text-slate-600 dark:bg-slate-800/60 dark:text-slate-300'
-              }`}
-            >
-              <CircleAlert size={16} /> {banner.message}
-            </div>
-          )}
+        
 
           <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 dark:border-slate-800 sm:grid-cols-4">
             <MiniStat icon={CameraIcon} label="Cámara" value={camera.isActive ? 'Conectada' : camera.isPaused ? 'En pausa' : 'Inactiva'} />

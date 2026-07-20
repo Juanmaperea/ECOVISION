@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getHealth, getDetailedHealth } from '../api/health'
+import { getHealth } from '../api/health'
 
 const POLL_INTERVAL_MS = 30000
 
@@ -19,14 +19,13 @@ export function useSystemHealth({ poll = true } = {}) {
 
   const check = useCallback(async () => {
     const result = await getHealth()
-    const detailedResult = await getDetailedHealth()
 
     setState({
       loading: false,
       reachable: result.ok,
       data: result.ok ? result.data : null,
-      detailed: detailedResult.ok ? detailedResult.data : null,
-      detailedAvailable: detailedResult.ok,
+      detailed: null,
+      detailedAvailable: false,
       lastCheckedAt: new Date().toISOString(),
       error: result.ok ? null : result.error,
     })

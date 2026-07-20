@@ -23,8 +23,7 @@ export function mapHistoryRecord(apiRecord, extra = {}) {
     explanation: apiRecord.explanation,
     recommendation: apiRecord.recommendation,
     createdAt: apiRecord.created_at,
-    // No persistidos por el backend actual (ver schemas/history.py):
-    container: extra.container ?? null,
+    container: apiRecord.container,
     inferenceMs: extra.inferenceMs ?? null,
   }
 }

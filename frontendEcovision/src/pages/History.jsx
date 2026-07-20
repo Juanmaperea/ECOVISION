@@ -120,7 +120,6 @@ export default function History() {
                     <th className="py-2 pr-4 font-medium">Objeto detectado</th>
                     <th className="py-2 pr-4 font-medium">Categoría</th>
                     <th className="py-2 pr-4 font-medium">Confianza</th>
-                    <th className="py-2 pr-4 font-medium">Tiempo</th>
                     <th className="py-2 pr-0 font-medium text-right">Acciones</th>
                   </tr>
                 </thead>
@@ -135,7 +134,6 @@ export default function History() {
                       <td className="py-3 pr-4">
                         <ConfidenceBadge confidence={r.confidence} />
                       </td>
-                      <td className="py-3 pr-4 text-slate-500 dark:text-slate-400">{formatMs(r.inferenceMs)}</td>
                       <td className="py-3 pr-0 text-right">
                         <Link to={`/historial/${r.id}`} className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400">
                           Ver detalle
