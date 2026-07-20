@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
 
     try:
         # Usa await solamente si wait_database está declarada con async def.
-        await wait_database()
+        wait_database()
 
         logger.info("Conexión con PostgreSQL establecida")
 
