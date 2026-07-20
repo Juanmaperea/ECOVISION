@@ -84,6 +84,7 @@ class AnalysisService:
         detection = VisualProcessingService.detect(
             image_bytes
         )
+        logger.info("DETECTION: %s", detection)
 
         detected_object = detection["detected_object"]
         confidence = detection["confidence"]
@@ -127,14 +128,12 @@ class AnalysisService:
                 "Análisis finalizado (detección no válida, sin llamada a Gemini ni guardado en historial)."
             )
 
-            # Ni Gemini ni el historial se tocan cuando la detección no es
-            # válida: se evita gastar la llamada al LLM y se evita
-            # contaminar el historial con detecciones que no son residuos.
             return AnalysisResponse(
                 detected_object=detected_object,
                 confidence=confidence,
                 is_valid_detection=False
             )
+
 
         recommendation = RecommendationService.generate(
             RecommendationRequest(
