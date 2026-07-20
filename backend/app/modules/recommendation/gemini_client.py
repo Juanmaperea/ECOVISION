@@ -17,8 +17,14 @@ class GeminiClient:
             model="gemini-2.5-flash",
             contents=prompt
         )
-
         return {
             "text": response.text,
             "usage": response.usage_metadata
         }
+    
+    @staticmethod
+    def ask_with_metadata(prompt: str):
+        return client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )

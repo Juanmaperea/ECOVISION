@@ -10,25 +10,20 @@ def test_create_history():
     db = MagicMock()
 
     request = HistoryCreate(
-
         detected_object="Bottle",
-
         confidence=0.94,
-
         recommendation="Contenedor blanco",
-
-        explanation="Plástico reciclable"
-
+        explanation="Plástico reciclable",
+        container="Blanco"
     )
 
     result = HistoryService.create(
-
         db,
-
         request
-
     )
 
     assert result.detected_object == "Bottle"
-
     assert result.confidence == 0.94
+    assert result.recommendation == "Contenedor blanco"
+    assert result.explanation == "Plástico reciclable"
+    assert result.container == "Blanco"

@@ -14,7 +14,7 @@ class RecommendationService:
     @staticmethod
     def generate(
         request: RecommendationRequest
-    ) -> RecommendationResponse:
+    ):
 
         prompt = PromptBuilder.build(
             request.detected_object,
@@ -22,10 +22,14 @@ class RecommendationService:
         )
 
         response = GeminiClient.ask(prompt)
-
         data = json.loads(response["text"])
-
         usage = response["usage"]
+        response2 = GeminiClient.ask_with_metadata(
+            prompt
+        )
+
+        answer = response2.text
+
 
         print("\n========== RESPUESTA GEMINI ==========")
         print(data)
@@ -44,7 +48,7 @@ class RecommendationService:
             8
         )
 
-        return RecommendationResponse(
+        recommendation = RecommendationResponse(
             detected_object=request.detected_object,
             confidence=request.confidence,
             container=data["container"],
@@ -55,3 +59,5 @@ class RecommendationService:
             total_tokens=total_tokens,
             api_cost=api_cost
         )
+        return recommendation, response2.usage_metadata
+
