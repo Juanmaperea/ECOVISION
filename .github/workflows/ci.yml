@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - develop
-      - feature/devops_feature
+      - feature/metrics
 
   pull_request:
     branches:

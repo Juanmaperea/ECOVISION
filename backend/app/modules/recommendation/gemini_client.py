@@ -19,3 +19,10 @@ class GeminiClient:
         )
 
         return response.text
+    
+    @staticmethod
+    def ask_with_metadata(prompt: str):
+        return client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
