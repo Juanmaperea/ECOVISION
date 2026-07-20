@@ -1,19 +1,29 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    app_name: str = "EcoVision AI"
-    app_env: str = "development"
-    cors_origins: list[str] = ["http://localhost:5173"]
-    yolo_model_path: str = "backend/models/yolov8n.pt"
-    detection_confidence_threshold: float = 0.50
-    frame_process_interval_ms: int = 1000
-    gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
-    store_images: bool = False
-    log_level: str = "INFO"
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    APP_NAME: str
+    APP_VERSION: str
+    APP_ENV: str
+
+    HOST: str
+    PORT: int
+
+    DB_HOST: str
+    DB_PORT: int
+    DB_NAME: str
+    DB_USER: str
+    DB_PASSWORD: str
+
+    GEMINI_API_KEY: str
+
+    YOLO_MODEL: str
+
+    LOG_LEVEL: str
+
+    class Config:
+        env_file = ".env"
 
 
 settings = Settings()

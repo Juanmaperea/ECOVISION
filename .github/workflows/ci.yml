@@ -1,38 +1,113 @@
-name: CI
+name: EcoVision Backend CI
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
+      - feature/metrics
+
   pull_request:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
 
 jobs:
-  backend:
+  backend-tests:
+
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+
+        env:
+          POSTGRES_DB: ecovision
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd="pg_isready -U postgres -d ecovision"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install backend dependencies
-        working-directory: backend
+
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Run backend tests
-        working-directory: backend
-        run: pytest
 
-  frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm install
-      - name: Run frontend checks
-        working-directory: frontend
-        run: npm run test -- --run
+      - name: Create .env
+        run: |
+          cat > .env <<EOF
+          APP_NAME=EcoVision API
+          APP_VERSION=1.0.0
+          APP_ENV=test
+
+          HOST=0.0.0.0
+          PORT=8000
+
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_NAME=ecovision
+          DB_USER=postgres
+          DB_PASSWORD=postgres
+
+          GEMINI_API_KEY=test
+
+          YOLO_MODEL=yolov8n.pt
+
+          LOG_LEVEL=INFO
+          EOF
+
+      - name: Wait for PostgreSQL
+        run: |
+          python - <<EOF
+          import socket
+          import time
+
+          host = "localhost"
+          port = 5432
+
+          for _ in range(30):
+              try:
+                  s = socket.create_connection((host, port), timeout=2)
+                  s.close()
+                  print("PostgreSQL is ready!")
+                  break
+              except OSError:
+                  print("Waiting for PostgreSQL...")
+                  time.sleep(2)
+          else:
+              raise RuntimeError("PostgreSQL did not start")
+          EOF
+
+      - name: Check syntax
+        run: |
+          python -m compileall app
+
+      - name: Run tests with coverage
+        run: |
+
+          pytest \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-report=html

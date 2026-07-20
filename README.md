@@ -1,27 +1,65 @@
-# EcoVision AI
+# EcoVision
 
-Monorepo para el agente visual inteligente de clasificación responsable de residuos.
+Sistema inteligente para la clasificación de residuos utilizando Visión por Computador e Inteligencia Artificial.
 
-## Componentes principales
+## Tecnologías
 
-- `frontend/`: aplicación web que captura video desde el navegador, muestra detecciones, confianza, recomendaciones e historial.
-- `backend/`: API FastAPI que orquesta visión, reglas de clasificación y razonamiento con LLM.
-- `backend/app/services/vision/`: integración con YOLOv8 para detección de residuos.
-- `backend/app/services/llm/`: cliente de Gemini 2.5 Flash y prompts controlados.
-- `infra/`: configuración de Docker, despliegue cloud, reverse proxy y scripts.
-- `.github/workflows/`: CI/CD, pruebas y despliegue automatizado.
-- `docs/`: arquitectura, decisiones técnicas, API, pruebas, despliegue e IA responsable.
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- OpenCV
+- YOLOv8
+- Gemini 2.5 Flash
+- Docker
+- GitHub Actions
+- Pytest
 
-## Alcance técnico
+## Estructura
 
-El proyecto se limita a residuos comunes reconocibles por modelos preentrenados de visión computacional. No se almacenan imágenes de cámara en producción y no se entrena un modelo personalizado dentro de esta primera versión.
+```
+backend/
+frontend/
+docker-compose.yml
+```
 
-## Ejecución local sugerida
+## Backend
+
+Entrar al backend
 
 ```bash
-cp .env.example .env
+cd backend
+```
+
+Instalar dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+Ejecutar
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Swagger
+
+```
+http://localhost:8000/docs
+```
+
+## Docker
+
+```bash
 docker compose up --build
 ```
 
-Frontend: http://localhost:5173  
-Backend: http://localhost:8000/docs
+## Tests
+
+```bash
+pytest
+```
+
+## Licencia
+
+Proyecto académico.
