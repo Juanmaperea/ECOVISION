@@ -14,7 +14,7 @@ class GeminiClient:
     def ask(prompt: str) -> str:
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=prompt
         )
 
@@ -23,6 +23,6 @@ class GeminiClient:
     @staticmethod
     def ask_with_metadata(prompt: str):
         return client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.5-flash",
             contents=prompt
         )
