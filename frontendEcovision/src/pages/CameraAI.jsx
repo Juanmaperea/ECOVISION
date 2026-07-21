@@ -9,7 +9,7 @@ import { useHistory } from '../context/HistoryContext.jsx'
 import { getWasteInfo } from '../utils/wasteTaxonomy.js'
 import { formatRelativeTime } from '../utils/format.js'
 
-const ANALYSIS_INTERVAL_MS = 2000
+const ANALYSIS_INTERVAL_MS = 5000
 
 export default function CameraAI() {
   const camera = useCameraCapture()
