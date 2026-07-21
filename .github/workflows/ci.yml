@@ -70,6 +70,8 @@ jobs:
           DB_USER=postgres
           DB_PASSWORD=postgres
 
+          DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ecovision
+
           GEMINI_API_KEY=test
 
           YOLO_MODEL=yolov8n.pt
