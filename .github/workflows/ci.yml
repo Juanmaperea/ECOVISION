@@ -69,6 +69,7 @@ jobs:
           DB_NAME=ecovision
           DB_USER=postgres
           DB_PASSWORD=postgres
+          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/ecovision
 
           GEMINI_API_KEY=test
 
