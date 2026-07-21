@@ -43,3 +43,6 @@ postgres_data/
 .DS_Store
 
 Thumbs.db
+.venv312
+.env.example
+backend/.env.example

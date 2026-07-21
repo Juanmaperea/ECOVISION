@@ -10,48 +10,60 @@ class HealthService:
     @staticmethod
     def get_status():
         return {
-            "status": "ok",
-            "app_name": settings.APP_NAME,
+            "application": settings.APP_NAME,
             "version": settings.APP_VERSION,
             "environment": settings.APP_ENV,
+            "status": "ok",
         }
 
     @staticmethod
-    def get_database_status():
+    def get_detailed_status():
+        database_status = {
+            "status": "down",
+            "detail": "No fue posible conectar con PostgreSQL.",
+        }
+
         try:
             with engine.connect() as connection:
                 connection.execute(text("SELECT 1"))
 
-            return {
-                "service": "postgresql",
-                "status": "active",
-                "message": "Conexión con PostgreSQL establecida",
+            database_status = {
+                "status": "ok",
+                "detail": "Conexión con PostgreSQL establecida.",
             }
 
-        except Exception:
-            logger.exception(
-                "No fue posible verificar la conexión con PostgreSQL"
+        except Exception as exc:
+            logger.error(
+                "Error comprobando PostgreSQL: %s",
+                exc,
+                exc_info=True,
             )
 
-            return {
-                "service": "postgresql",
-                "status": "inactive",
-                "message": "No fue posible conectar con PostgreSQL",
-            }
+        yolo_configured = bool(settings.YOLO_MODEL)
 
-    @staticmethod
-    def get_gemini_status():
-        # Debe reemplazarse por una comprobación del cliente Gemini
-        # que ya utiliza el módulo de recomendaciones.
-        if not settings.GEMINI_API_KEY:
-            return {
-                "service": "gemini",
-                "status": "inactive",
-                "message": "GEMINI_API_KEY no está configurada",
-            }
+        yolo_status = {
+            "status": "ok" if yolo_configured else "down",
+            "detail": (
+                f"Modelo configurado: {settings.YOLO_MODEL}"
+                if yolo_configured
+                else "No se configuró el modelo YOLO."
+            ),
+        }
+
+        gemini_configured = bool(settings.GEMINI_API_KEY)
+
+        gemini_status = {
+            "status": "ok" if gemini_configured else "down",
+            "detail": (
+                "La clave de Gemini está configurada."
+                if gemini_configured
+                else "GEMINI_API_KEY no está configurada."
+            ),
+        }
 
         return {
-            "service": "gemini",
-            "status": "configured",
-            "message": "La clave de Gemini está configurada",
+            "status": "ok",
+            "yolo": yolo_status,
+            "gemini": gemini_status,
+            "database": database_status,
         }
