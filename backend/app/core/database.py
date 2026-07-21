@@ -2,32 +2,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
+from app.models.detection_history import Base
+from app.models.metrics import Metrics  # noqa: F401
 
-DATABASE_URL = (
-    f"postgresql://"
-    f"{settings.DB_USER}:"
-    f"{settings.DB_PASSWORD}@"
-    f"{settings.DB_HOST}:"
-    f"{settings.DB_PORT}/"
-    f"{settings.DB_NAME}"
-)
-
-print(DATABASE_URL)
-print(repr(DATABASE_URL))
 
 engine = create_engine(
-    DATABASE_URL,
-    echo=False,
-    pool_pre_ping=True
+    settings.DATABASE_URL,
+    pool_pre_ping=True,
 )
 
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine
+    bind=engine,
 )
-
-from app.models.detection_history import Base
-from app.models.metrics import Metrics
-
-Base.metadata.create_all(bind=engine)
