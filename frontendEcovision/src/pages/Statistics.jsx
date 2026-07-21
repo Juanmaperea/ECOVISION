@@ -23,7 +23,7 @@ export default function Statistics() {
         <SectionCard title="Detecciones por día" subtitle="Últimos 14 días" className="xl:col-span-2">
           <DetectionsLineChart data={metrics.dailySeries} height={280} />
         </SectionCard>
-        <SectionCard title="Distribución por categorías" subtitle="Total acumulado">
+        <SectionCard title="Distribución por categorías" subtitle="">
           <MaterialDonutChart data={metrics.categoryData} height={200} />
         </SectionCard>
       </div>
