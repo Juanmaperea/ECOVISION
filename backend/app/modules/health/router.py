@@ -20,16 +20,8 @@ def health():
 
 
 @router.get(
-    "/database",
-    summary="Verifica la conexión con PostgreSQL",
+    "/detailed",
+    summary="Verifica el estado detallado de los servicios",
 )
-def database_health():
-    return HealthService.get_database_status()
-
-
-@router.get(
-    "/gemini",
-    summary="Verifica la disponibilidad de Gemini",
-)
-def gemini_health():
-    return HealthService.get_gemini_status()
+def detailed_health():
+    return HealthService.get_detailed_status()
