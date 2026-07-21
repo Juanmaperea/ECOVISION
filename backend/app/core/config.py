@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str
 
     YOLO_MODEL: str
+    
+    FRONTEND_URL: str = "http://localhost:5173"
 
     LOG_LEVEL: str
 
