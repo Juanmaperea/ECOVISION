@@ -20,16 +20,19 @@ export default function MaterialDonutChart({ data, height = 240 }) {
           <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12, border: '1px solid #e2e8f0' }} />
         </PieChart>
       </ResponsiveContainer>
-      <ul className="grid flex-1 grid-cols-2 gap-x-4 gap-y-2 text-sm">
+      <ul className="ml-4 flex flex-col gap-3 text-sm">
         {data.map((entry) => (
-          <li key={entry.name} className="flex items-center justify-between gap-2 text-slate-600 dark:text-slate-300">
+          <li
+              key={entry.name}
+              className="flex items-center gap-2 text-slate-600 dark:text-slate-300"
+            >
             <span className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
               {entry.name}
             </span>
-            <span className="font-medium text-slate-900 dark:text-white">
-              {total ? Math.round((entry.value / total) * 100) : 0}%
-            </span>
+            <span className="ml-2 font-medium text-slate-900 dark:text-white">
+                  {total ? Math.round((entry.value / total) * 100) : 0}%
+                </span>
           </li>
         ))}
       </ul>

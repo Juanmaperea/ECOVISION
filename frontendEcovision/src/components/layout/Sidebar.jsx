@@ -6,7 +6,6 @@ const NAV_ITEMS = [
   { to: '/camara', label: 'Cámara IA', icon: Camera },
   { to: '/historial', label: 'Historial', icon: History },
   { to: '/estadisticas', label: 'Estadísticas', icon: BarChart3 },
-  { to: '/estado-del-sistema', label: 'Estado del sistema', icon: HeartPulse },
   { to: '/acerca-del-proyecto', label: 'Acerca del proyecto', icon: Info },
 ]
 
