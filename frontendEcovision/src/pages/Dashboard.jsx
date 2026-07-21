@@ -45,21 +45,14 @@ export default function Dashboard() {
         <SectionCard title="Detecciones por categoría" subtitle="Todas las sesiones registradas" className="xl:col-span-2">
           <CategoryBarChart data={metrics.categoryData} />
         </SectionCard>
-
-        <SectionCard title="Estado del sistema" action={<Link to="/estado-del-sistema" className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400">Ver todo</Link>}>
-          <div className="flex flex-col gap-3">
-            <StatusRow label="Backend (FastAPI)" ok={reachable} loading={loading} />
-            <StatusRow label="Modelo YOLOv8" ok={reachable} loading={loading} note="Inferido del backend" />
-            <StatusRow label="Base de datos / Historial" ok={false} loading={false} note="Pendiente de exponer en backend" />
-            <StatusRow label="Gemini API" ok={false} loading={false} note="Pendiente de exponer en backend" />
+        <SectionCard title="Impacto ambiental" subtitle="Estimado a partir del historial">
+          <div className="grid grid-cols-2 gap-4">
+            <ImpactStat icon={Leaf} label="CO₂ ahorrado" value={`${metrics.co2SavedKg.toFixed(1)} kg`} />
+            <ImpactStat icon={Recycle} label="Material reciclado" value={`${metrics.recycledKg.toFixed(1)} kg`} />
+            <ImpactStat icon={Target} label="Recomendaciones IA" value={metrics.recommendationsGenerated.toLocaleString('es-CO')} />
           </div>
-          <Link
-            to="/estado-del-sistema"
-            className="mt-4 flex items-center justify-center gap-1 rounded-lg border border-slate-200 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            Ver estado completo <ArrowRight size={14} />
-          </Link>
         </SectionCard>
+
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
@@ -100,18 +93,7 @@ export default function Dashboard() {
           )}
         </SectionCard>
 
-        <SectionCard title="Impacto ambiental" subtitle="Estimado a partir del historial">
-          <div className="grid grid-cols-2 gap-4">
-            <ImpactStat icon={Leaf} label="CO₂ ahorrado" value={`${metrics.co2SavedKg.toFixed(1)} kg`} />
-            <ImpactStat icon={Recycle} label="Material reciclado" value={`${metrics.recycledKg.toFixed(1)} kg`} />
-            <ImpactStat
-              icon={Gauge}
-              label="Tiempo prom. inferencia"
-              value={metrics.avgInferenceMs ? `${Math.round(metrics.avgInferenceMs)} ms` : '—'}
-            />
-            <ImpactStat icon={Target} label="Recomendaciones IA" value={metrics.recommendationsGenerated.toLocaleString('es-CO')} />
-          </div>
-        </SectionCard>
+        
       </div>
     </div>
   )

@@ -142,7 +142,7 @@ class AnalysisService:
         )
 
 
-        metrics = collector.finish()
+        metrics = collector.finish(usage_metadata)
         logger.info(
                 f"Tiempo total: {metrics['latency']:.3f} segundos"
 )
