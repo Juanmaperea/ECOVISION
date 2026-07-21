@@ -44,11 +44,20 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:8080",
+        "https://ecovision-frontend-odij.onrender.com",
+        settings.FRONTEND_URL.rstrip("/"),
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/", tags=["System"])
+def root():
+    return {
+        "status": "ok",
+        "message": "EcoVision API funcionando",
+    }
 
 app.include_router(
     health_router,
